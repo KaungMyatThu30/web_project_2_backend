@@ -1,9 +1,10 @@
-import bcrypt from 'bcryptjs';
-import {User} from '../models/User.js';
+import bcrypt from 'bcryptjs'
+import { User } from '../models/User.js'
 
-function normalizeEmail(value){
-    return String(value || '').trim().toLowerCase();
+function normalizeEmail(value) {
+  return String(value || '').trim().toLowerCase()
 }
+
 function normalizeNotificationPreferences(value) {
   const source = value && typeof value === 'object' ? value : {}
   return {
@@ -17,22 +18,25 @@ function normalizeNotificationPreferences(value) {
     weeklyPerformanceSummary: source.weeklyPerformanceSummary ?? false,
   }
 }
-function serializeUser(user){
-    return {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        phone: user.phone || "",
-        address: user.address || "",
-        notificationPreferences: normalizeNotificationPreferences(user.notificationPreferences),
-        twoFactorEnabled: Boolean(user.twoFactorEnabled),
-        workingDays: user.workingDays || '',
-        workingHours: user.workingHours || '',
-        breakTime: user.breakTime || '',
-        profilePhoto: user.profilePhoto || '',
-    }
+
+function serializeUser(user) {
+  return {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    phone: user.phone || '',
+    address: user.address || '',
+    preferredContact: user.preferredContact || 'Email',
+    notificationPreferences: normalizeNotificationPreferences(user.notificationPreferences),
+    twoFactorEnabled: Boolean(user.twoFactorEnabled),
+    workingDays: user.workingDays || '',
+    workingHours: user.workingHours || '',
+    breakTime: user.breakTime || '',
+    profilePhoto: user.profilePhoto || '',
+  }
 }
+
 export async function register(req, res) {
   const { name, email, password, role } = req.body
   const normalizedEmail = normalizeEmail(email)
