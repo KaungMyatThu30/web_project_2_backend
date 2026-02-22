@@ -1,4 +1,4 @@
-import mongoose from 'mongoose'
+import mongoose from "mongoose";
 
 const userSchema = new mongoose.Schema(
   {
@@ -20,23 +20,23 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['pet-owner', 'doctor', 'staff'],
-      default: 'pet-owner',
+      enum: ["pet-owner", "doctor", "staff"],
+      default: "pet-owner",
     },
     phone: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     address: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     preferredContact: {
       type: String,
-      enum: ['Email', 'Phone', 'SMS'],
-      default: 'Email',
+      enum: ["Email", "Phone", "SMS"],
+      default: "Email",
     },
     notificationPreferences: {
       appointmentReminders: {
@@ -79,28 +79,28 @@ const userSchema = new mongoose.Schema(
     workingDays: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     workingHours: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     breakTime: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
     profilePhoto: {
       type: String,
       trim: true,
-      default: '',
+      default: "",
     },
   },
   {
     timestamps: true,
-    collection: 'UserData',
+    collection: "UserData",
   }
-)
+);
 
-export const User = mongoose.model('User', userSchema)
+export const User = mongoose.model("User", userSchema);
