@@ -1,4 +1,5 @@
 import { getPetModel } from '../config/petDb.js'
+import { getActorFromRequest, recordActivityLog } from '../lib/activityLog.js'
 
 function normalizeText(value) {
   return String(value || '').trim()
@@ -92,10 +93,39 @@ export async function updatePet(req, res) {
 
   const Pet = await getPetModel()
   const query = requesterOwnerId ? { _id: petId, ownerId: requesterOwnerId } : { _id: petId }
+  const previousPet = await Pet.findOne(query)
+  if (!previousPet) {
+    return res.status(404).json({ message: 'Pet not found.' })
+  }
   const pet = await Pet.findOneAndUpdate(query, updates, { new: true, runValidators: true })
 
-  if (!pet) {
-    return res.status(404).json({ message: 'Pet not found.' })
+  const trackedFields = ['name', 'breed', 'age', 'weight', 'vaccinationStatus', 'petPhoto', 'ownerName']
+  const changedFields = trackedFields.filter((field) => {
+    if (updates[field] === undefined) {
+      return false
+    }
+    return String(previousPet?.[field] ?? '') !== String(pet?.[field] ?? '')
+  })
+
+  if (pet && changedFields.length > 0) {
+    await recordActivityLog({
+      action: 'pet.record_edited',
+      category: 'pets',
+      description: `Pet record edited (${changedFields.join(', ')}).`,
+      actor: getActorFromRequest(req, {
+        id: requesterOwnerId || previousPet.ownerId,
+        name: previousPet.ownerName || 'Unknown User',
+        role: requesterOwnerId ? 'pet-owner' : 'unknown',
+      }),
+      entity: {
+        type: 'pet',
+        id: pet.id,
+        label: pet.name,
+      },
+      metadata: {
+        changedFields,
+      },
+    })
   }
 
   return res.status(200).json({ pet: serializePet(pet) })

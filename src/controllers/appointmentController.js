@@ -1,6 +1,7 @@
 import { Appointment } from '../models/Appointment.js'
 import { getPetDatabaseConnection } from '../config/petDb.js'
 import { doctorScheduleSchema } from '../models/DoctorSchedule.js'
+import { getActorFromRequest, recordActivityLog } from '../lib/activityLog.js'
 
 function normalizeText(value) {
   return String(value || '').trim()
@@ -355,6 +356,32 @@ export async function updateAppointment(req, res) {
     new: true,
     runValidators: true,
   })
+
+  if (appointment) {
+    const previousStatus = normalizeText(existingAppointment.status)
+    const nextStatusApplied = normalizeText(appointment.status)
+    if (previousStatus !== nextStatusApplied) {
+      await recordActivityLog({
+        action: 'appointment.status_changed',
+        category: 'appointments',
+        description: `Appointment status changed from ${previousStatus || '-'} to ${nextStatusApplied || '-'}.`,
+        actor: getActorFromRequest(req, {
+          id: existingAppointment.ownerId,
+          name: existingAppointment.ownerName || 'Unknown User',
+          role: 'unknown',
+        }),
+        entity: {
+          type: 'appointment',
+          id: appointment.id,
+          label: `${appointment.petName} | ${appointment.doctorName} | ${appointment.appointmentDate} ${appointment.appointmentTime}`,
+        },
+        metadata: {
+          fromStatus: previousStatus,
+          toStatus: nextStatusApplied,
+        },
+      })
+    }
+  }
 
   return res.status(200).json({
     appointment: serializeAppointment(appointment),

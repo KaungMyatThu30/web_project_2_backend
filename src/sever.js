@@ -13,6 +13,7 @@ import { doctorScheduleRouter } from "./routes/doctorScheduleRoutes.js";
 import { billingRouter } from "./routes/billingRoutes.js";
 import { reportRouter } from "./routes/reportRoutes.js";
 import { medicalRecordRouter } from "./routes/medicalRecordRoutes.js";
+import { activityLogRouter } from "./routes/activityLogRoutes.js";
 import { errorHandler, notFoundHandler } from "./middleware/errorHandler.js";
 
 const app = express();
@@ -52,6 +53,7 @@ app.use("/api/doctor-schedule", doctorScheduleRouter);
 app.use("/api/billing", billingRouter);
 app.use("/api/reports", reportRouter);
 app.use("/api/medical-records", medicalRecordRouter);
+app.use("/api/activity-logs", activityLogRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

@@ -1,5 +1,6 @@
 import { prescriptionSchema } from '../models/Prescription.js'
 import { getPetDatabaseConnection, getPetModel } from '../config/petDb.js'
+import { getActorFromRequest, recordActivityLog } from '../lib/activityLog.js'
 
 function normalizeText(value) {
   return String(value || '').trim()
@@ -91,6 +92,29 @@ export async function createPrescription(req, res) {
     },
     { new: false }
   )
+
+  await recordActivityLog({
+    action: 'prescription.added',
+    category: 'prescriptions',
+    description: `Prescription added for ${pet.name}.`,
+    actor: getActorFromRequest(req, {
+      id: normalizeText(doctorId),
+      name: normalizedDoctorName || 'Doctor',
+      role: 'doctor',
+    }),
+    entity: {
+      type: 'prescription',
+      id: prescription.id,
+      label: `${pet.name} | ${normalizedMedicine}`,
+    },
+    metadata: {
+      petId: pet.id,
+      petName: pet.name,
+      doctorId: normalizeText(doctorId),
+      doctorName: normalizedDoctorName,
+      medicine: normalizedMedicine,
+    },
+  })
 
   return res.status(201).json({
     prescription: serializePrescription(prescription),

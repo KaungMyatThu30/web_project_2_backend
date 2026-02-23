@@ -1,5 +1,6 @@
 import { getPetDatabaseConnection } from '../config/petDb.js'
 import { medicalRecordSchema } from '../models/MedicalRecord.js'
+import { getActorFromRequest, recordActivityLog } from '../lib/activityLog.js'
 
 function normalizeText(value) {
   return String(value || '').trim()
@@ -85,5 +86,30 @@ export async function createMedicalRecord(req, res) {
   }
 
   const record = await MedicalRecord.create(payload)
+
+  if (payload.prescription) {
+    await recordActivityLog({
+      action: 'prescription.added',
+      category: 'prescriptions',
+      description: `Prescription added in medical record for ${payload.petName}.`,
+      actor: getActorFromRequest(req, {
+        id: payload.doctorId,
+        name: payload.doctorName || 'Doctor',
+        role: 'doctor',
+      }),
+      entity: {
+        type: 'medical-record',
+        id: record.id,
+        label: `${payload.petName} | ${payload.recordDate}`,
+      },
+      metadata: {
+        petId: payload.petId,
+        petName: payload.petName,
+        doctorName: payload.doctorName,
+        recordDate: payload.recordDate,
+      },
+    })
+  }
+
   return res.status(201).json({ record: serializeRecord(record) })
 }
