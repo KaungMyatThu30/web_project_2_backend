@@ -1,4 +1,5 @@
 import bcrypt from 'bcryptjs'
+import crypto from 'node:crypto'
 import { User } from '../models/User.js'
 
 function normalizeEmail(value) {
@@ -89,4 +90,64 @@ export async function login(req, res) {
   }
 
   return res.status(200).json({ user: serializeUser(user) })
+}
+
+export async function requestPasswordReset(req, res) {
+  const normalizedEmail = normalizeEmail(req.body.email)
+  if (!normalizedEmail) {
+    return res.status(400).json({ message: 'Email is required.' })
+  }
+
+  const user = await User.findOne({ email: normalizedEmail })
+  if (!user) {
+    return res.status(404).json({ message: 'No account found for this email.' })
+  }
+
+  const resetToken = crypto.randomBytes(16).toString('hex')
+  const expiresAt = new Date(Date.now() + 15 * 60 * 1000)
+
+  user.passwordResetToken = resetToken
+  user.passwordResetExpiresAt = expiresAt
+  await user.save()
+
+  return res.status(200).json({
+    message: 'Password reset token generated. Use it to reset your password.',
+    resetToken, // demo/local flow without email service
+    expiresAt,
+  })
+}
+
+export async function resetPassword(req, res) {
+  const normalizedEmail = normalizeEmail(req.body.email)
+  const token = String(req.body.token || '').trim()
+  const newPassword = String(req.body.newPassword || '')
+
+  if (!normalizedEmail || !token || !newPassword) {
+    return res.status(400).json({ message: 'Email, token, and new password are required.' })
+  }
+  if (newPassword.length < 8) {
+    return res.status(400).json({ message: 'New password must be at least 8 characters.' })
+  }
+
+  const user = await User.findOne({ email: normalizedEmail })
+  if (!user) {
+    return res.status(404).json({ message: 'No account found for this email.' })
+  }
+
+  const tokenMatches = String(user.passwordResetToken || '') === token
+  const notExpired =
+    user.passwordResetExpiresAt instanceof Date &&
+    !Number.isNaN(user.passwordResetExpiresAt.getTime()) &&
+    user.passwordResetExpiresAt.getTime() > Date.now()
+
+  if (!tokenMatches || !notExpired) {
+    return res.status(400).json({ message: 'Invalid or expired reset token.' })
+  }
+
+  user.passwordHash = await bcrypt.hash(newPassword, 10)
+  user.passwordResetToken = ''
+  user.passwordResetExpiresAt = null
+  await user.save()
+
+  return res.status(200).json({ message: 'Password reset successfully.' })
 }

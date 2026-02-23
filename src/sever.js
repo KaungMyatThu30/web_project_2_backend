@@ -28,10 +28,14 @@ const allowedOrigins = [
 ];
 const dbRetryMs = Number(process.env.DB_RETRY_MS) || 10000;
 
+function isLocalDevOrigin(origin) {
+  return /^http:\/\/(localhost|127\.0\.0\.1):\d+$/.test(String(origin || ""));
+}
+
 app.use(
   cors({
     origin(origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      if (!origin || allowedOrigins.includes(origin) || isLocalDevOrigin(origin)) {
         callback(null, true);
         return;
       }
