@@ -8,6 +8,11 @@ export const billingRecordSchema = new mongoose.Schema(
       unique: true,
       trim: true,
     },
+    invoiceNumber: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     appointmentId: {
       type: String,
       trim: true,
@@ -48,7 +53,32 @@ export const billingRecordSchema = new mongoose.Schema(
       default: 0,
       min: 0,
     },
+    taxAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    discountAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    subTotal: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
     totalAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    amountPaid: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    balanceDue: {
       type: Number,
       default: 0,
       min: 0,
@@ -70,8 +100,8 @@ export const billingRecordSchema = new mongoose.Schema(
     },
     paymentStatus: {
       type: String,
-      enum: ['Paid', 'Pending', 'Failed'],
-      default: 'Pending',
+      enum: ['Paid', 'Partial', 'Unpaid', 'Pending', 'Failed'],
+      default: 'Unpaid',
     },
   },
   {
