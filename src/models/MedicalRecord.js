@@ -42,6 +42,11 @@ export const medicalRecordSchema = new mongoose.Schema(
       trim: true,
       default: '',
     },
+    nextDueDate: {
+      type: String,
+      trim: true,
+      default: '',
+    },
     labResult: {
       type: String,
       trim: true,
