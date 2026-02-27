@@ -35,7 +35,16 @@ function serializeVaccination(record) {
 export async function listVaccinations(req, res) {
   const Vaccination = await getVaccinationModel()
   const petId = normalizeText(req.query.petId)
-  const query = petId ? { petId } : {}
+  const petIds = String(req.query.petIds || '')
+    .split(',')
+    .map((value) => normalizeText(value))
+    .filter(Boolean)
+  const query = {}
+  if (petIds.length > 0) {
+    query.petId = { $in: petIds }
+  } else if (petId) {
+    query.petId = petId
+  }
   const records = await Vaccination.find(query)
     .sort({ nextDueDate: 1, createdAt: -1 })
     .limit(500)
