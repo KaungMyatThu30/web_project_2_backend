@@ -1,5 +1,6 @@
 import mongoose from 'mongoose'
 import { petSchema } from '../models/Pet.js'
+import { vaccinationSchema } from '../models/Vaccination.js'
 
 let petConnectionPromise
 
@@ -25,4 +26,9 @@ export async function getPetDatabaseConnection() {
 export async function getPetModel() {
   const connection = await getPetDatabaseConnection()
   return connection.models.Pet || connection.model('Pet', petSchema)
+}
+
+export async function getVaccinationModel() {
+  const connection = await getPetDatabaseConnection()
+  return connection.models.Vaccination || connection.model('Vaccination', vaccinationSchema)
 }
