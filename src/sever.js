@@ -21,12 +21,17 @@ const app = express();
 const port = Number(process.env.PORT) || 5000;
 const host = process.env.HOST || "0.0.0.0";
 const frontendUrl = process.env.FRONTEND_URL || "http://localhost:5173";
+const knownCloudOrigins = [
+  "https://pawever.koreacentral.cloudapp.azure.com",
+  "https://pawever1.koreacentral.cloudapp.azure.com",
+];
 const allowedOrigins = [
   frontendUrl,
   "http://localhost:5173",
   "http://localhost:5174",
   "http://127.0.0.1:5173",
   "http://127.0.0.1:5174",
+  ...knownCloudOrigins,
 ];
 const dbRetryMs = Number(process.env.DB_RETRY_MS) || 10000;
 
